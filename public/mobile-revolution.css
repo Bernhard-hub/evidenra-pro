@@ -1,0 +1,556 @@
+/* 🚀 MOBILE-FIRST RESEARCH REVOLUTION CSS */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+/* 🎯 REVOLUTIONARY BASE STYLES */
+* {
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body, html, #root {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+}
+
+/* 🌟 MOBILE-FIRST LAYOUT SYSTEM */
+.mobile-app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  width: 100vw;
+  position: relative;
+}
+
+.mobile-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: rgba(15, 15, 35, 0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 16px 20px;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mobile-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 100px 20px 100px 20px;
+  scroll-behavior: smooth;
+}
+
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: rgba(15, 15, 35, 0.95);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 12px 20px 12px 20px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  height: 80px;
+}
+
+/* 📱 CARD REVOLUTION SYSTEM */
+.research-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  padding: 24px;
+  margin-bottom: 20px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.research-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.research-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+}
+
+.hero-card {
+  background: linear-gradient(135deg, rgba(139, 69, 255, 0.15) 0%, rgba(255, 71, 133, 0.15) 100%);
+  border: 1px solid rgba(139, 69, 255, 0.3);
+  margin-bottom: 32px;
+}
+
+.omniscience-card {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%);
+  border: 1px solid rgba(6, 182, 212, 0.3);
+}
+
+.action-card {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.12) 0%, rgba(59, 130, 246, 0.12) 100%);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+/* 🎨 TYPOGRAPHY REVOLUTION */
+.hero-title {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 800;
+  line-height: 1.1;
+  background: linear-gradient(135deg, #06B6D4, #8B5CF6, #F472B6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 12px;
+  letter-spacing: -0.02em;
+}
+
+.card-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: white;
+  margin-bottom: 8px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+}
+
+.card-subtitle {
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.stat-number {
+  font-size: 2.5rem;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+/* 🚀 BUTTON REVOLUTION */
+.mobile-button {
+  background: linear-gradient(135deg, #8B5CF6, #06B6D4);
+  border: none;
+  border-radius: 24px;
+  padding: 16px 24px;
+  font-weight: 600;
+  font-size: 1rem;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.mobile-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(139, 92, 246, 0.4);
+}
+
+.mobile-button:active {
+  transform: translateY(0);
+}
+
+.mobile-button.secondary {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.mobile-button.danger {
+  background: linear-gradient(135deg, #EF4444, #DC2626);
+}
+
+.mobile-button.success {
+  background: linear-gradient(135deg, #10B981, #059669);
+}
+
+/* 📊 STATS GRID REVOLUTION */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 16px;
+  margin: 20px 0;
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 20px 16px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
+}
+
+/* 🌊 FLOATING ACTION BUTTON */
+.fab {
+  position: fixed;
+  bottom: 100px;
+  right: 20px;
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, #F472B6, #8B5CF6);
+  border-radius: 50%;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 16px rgba(244, 114, 182, 0.4);
+  z-index: 999;
+}
+
+.fab:hover {
+  transform: scale(1.1);
+  box-shadow: 0 12px 24px rgba(244, 114, 182, 0.5);
+}
+
+/* 🎯 BOTTOM NAVIGATION REVOLUTION */
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  min-width: 60px;
+}
+
+.nav-item.active {
+  background: rgba(139, 92, 246, 0.2);
+  color: #8B5CF6;
+}
+
+.nav-item:not(.active) {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.nav-item:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.nav-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.nav-label {
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.025em;
+}
+
+/* 📱 RESPONSIVE BREAKPOINTS */
+@media (min-width: 768px) {
+  .mobile-content {
+    padding: 100px 40px 100px 40px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  
+  .hero-title {
+    font-size: 4rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .mobile-content {
+    padding: 100px 60px 100px 60px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+}
+
+/* 🌟 SCROLL IMPROVEMENTS */
+.mobile-content::-webkit-scrollbar {
+  width: 6px;
+}
+
+.mobile-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.mobile-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+}
+
+.mobile-content::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* ⚡ LOADING & ANIMATIONS */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-up {
+  animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stagger-children > * {
+  animation: fadeInUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 100ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 200ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 300ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 400ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 500ms; }
+
+/* 🔥 GLASSMORPHISM EFFECTS */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(30px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* 🎨 BRAND COLORS & NEON GLOW SYSTEM */
+:root {
+  --primary: #8B5CF6;
+  --secondary: #06B6D4;
+  --accent: #F472B6;
+  --success: #10B981;
+  --warning: #F59E0B;
+  --danger: #EF4444;
+  --dark: #0F0F23;
+  --surface: rgba(255, 255, 255, 0.05);
+  --text-primary: #FFFFFF;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --border: rgba(255, 255, 255, 0.1);
+  
+  /* NEON GLOW COLORS */
+  --neon-cyan: rgba(6, 182, 212, 0.5);
+  --neon-purple: rgba(139, 92, 246, 0.5);
+  --neon-pink: rgba(244, 114, 182, 0.5);
+  --neon-green: rgba(16, 185, 129, 0.5);
+  --neon-orange: rgba(245, 158, 11, 0.5);
+  --neon-red: rgba(239, 68, 68, 0.5);
+}
+
+/* 💎 UNIFIED FUTURISTIC BUTTON SYSTEM */
+.quantum-btn {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
+  padding: 16px 24px;
+  font-weight: 600;
+  font-size: 1rem;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.quantum-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+}
+
+.quantum-btn:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.quantum-btn:active {
+  transform: translateY(0);
+}
+
+/* QUANTUM BUTTON VARIANTS WITH NEON GLOWS */
+.quantum-btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  border: 1px solid var(--neon-purple);
+  box-shadow: 0 8px 32px var(--neon-purple);
+}
+
+.quantum-btn-primary:hover {
+  box-shadow: 0 12px 40px var(--neon-purple), 0 0 20px var(--neon-purple);
+  transform: translateY(-3px);
+}
+
+.quantum-btn-secondary {
+  background: linear-gradient(135deg, var(--secondary), var(--accent));
+  border: 1px solid var(--neon-cyan);
+  box-shadow: 0 8px 32px var(--neon-cyan);
+}
+
+.quantum-btn-secondary:hover {
+  box-shadow: 0 12px 40px var(--neon-cyan), 0 0 20px var(--neon-cyan);
+  transform: translateY(-3px);
+}
+
+.quantum-btn-success {
+  background: linear-gradient(135deg, var(--success), #059669);
+  border: 1px solid var(--neon-green);
+  box-shadow: 0 8px 32px var(--neon-green);
+}
+
+.quantum-btn-success:hover {
+  box-shadow: 0 12px 40px var(--neon-green), 0 0 20px var(--neon-green);
+  transform: translateY(-3px);
+}
+
+.quantum-btn-danger {
+  background: linear-gradient(135deg, var(--danger), #DC2626);
+  border: 1px solid var(--neon-red);
+  box-shadow: 0 8px 32px var(--neon-red);
+}
+
+.quantum-btn-danger:hover {
+  box-shadow: 0 12px 40px var(--neon-red), 0 0 20px var(--neon-red);
+  transform: translateY(-3px);
+}
+
+.quantum-btn-accent {
+  background: linear-gradient(135deg, var(--accent), var(--primary));
+  border: 1px solid var(--neon-pink);
+  box-shadow: 0 8px 32px var(--neon-pink);
+}
+
+.quantum-btn-accent:hover {
+  box-shadow: 0 12px 40px var(--neon-pink), 0 0 20px var(--neon-pink);
+  transform: translateY(-3px);
+}
+
+/* 🌟 UNIFIED QUANTUM CARD SYSTEM */
+.quantum-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 20px;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.quantum-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+}
+
+.quantum-card:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+/* QUANTUM CARD VARIANTS */
+.quantum-card-hero {
+  background: linear-gradient(135deg, rgba(139, 69, 255, 0.15) 0%, rgba(255, 71, 133, 0.15) 100%);
+  border: 1px solid var(--neon-purple);
+  box-shadow: 0 12px 32px var(--neon-purple);
+  margin-bottom: 32px;
+  padding: 32px;
+}
+
+.quantum-card-hero:hover {
+  box-shadow: 0 16px 40px var(--neon-purple), 0 0 24px var(--neon-purple);
+}
+
+.quantum-card-omniscience {
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.15) 0%, rgba(168, 85, 247, 0.15) 100%);
+  border: 1px solid var(--neon-cyan);
+  box-shadow: 0 12px 32px var(--neon-cyan);
+}
+
+.quantum-card-omniscience:hover {
+  box-shadow: 0 16px 40px var(--neon-cyan), 0 0 24px var(--neon-cyan);
+}
+
+.quantum-card-action {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.12) 0%, rgba(59, 130, 246, 0.12) 100%);
+  border: 1px solid var(--neon-green);
+  box-shadow: 0 12px 32px var(--neon-green);
+}
+
+.quantum-card-action:hover {
+  box-shadow: 0 16px 40px var(--neon-green), 0 0 24px var(--neon-green);
+}
+
+.quantum-card-stats {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 20px 16px;
+  text-align: center;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: all 0.3s ease;
+  backdrop-filter: blur(15px);
+}
+
+.quantum-card-stats:hover {
+  background: rgba(255, 255, 255, 0.12);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+}

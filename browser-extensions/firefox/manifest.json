@@ -1,0 +1,48 @@
+{
+  "manifest_version": 2,
+  "name": "EVIDENRA Claude Bridge",
+  "version": "1.0.0",
+  "description": "Bridge zwischen Claude Pro/Max und EVIDENRA Professional App",
+
+  "permissions": [
+    "activeTab",
+    "storage",
+    "tabs",
+    "https://claude.ai/*"
+  ],
+
+  "content_scripts": [
+    {
+      "matches": ["https://claude.ai/*"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ],
+
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": true
+  },
+
+  "browser_action": {
+    "default_popup": "popup.html",
+    "default_title": "EVIDENRA Claude Bridge"
+  },
+
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+
+  "web_accessible_resources": [
+    "inject.js"
+  ],
+
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "evidenra-claude-bridge@evidenra.com",
+      "strict_min_version": "109.0"
+    }
+  }
+}

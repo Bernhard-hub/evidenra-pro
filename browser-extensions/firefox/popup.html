@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EVIDENRA Claude Bridge</title>
+  <style>
+    body {
+      width: 320px;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      margin: 0;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .status-card {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      backdrop-filter: blur(10px);
+    }
+
+    .status-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .status-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .status-label {
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
+    .status-value {
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    .status-indicator {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-left: 8px;
+    }
+
+    .status-connected {
+      background: #4ECDC4;
+      box-shadow: 0 0 8px rgba(78, 205, 196, 0.5);
+    }
+
+    .status-disconnected {
+      background: #FF6B6B;
+      box-shadow: 0 0 8px rgba(255, 107, 107, 0.5);
+    }
+
+    .status-pending {
+      background: #FFE66D;
+      box-shadow: 0 0 8px rgba(255, 230, 109, 0.5);
+    }
+
+    .button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      margin-bottom: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .button-primary {
+      background: #4ECDC4;
+      color: white;
+    }
+
+    .button-primary:hover {
+      background: #45b8b1;
+      transform: translateY(-1px);
+    }
+
+    .button-secondary {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+    }
+
+    .button-secondary:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .info-text {
+      font-size: 12px;
+      opacity: 0.8;
+      text-align: center;
+      margin-top: 16px;
+      line-height: 1.4;
+    }
+
+    .shortcuts {
+      margin-top: 16px;
+      font-size: 11px;
+      opacity: 0.7;
+    }
+
+    .shortcut-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div class="logo">🔌 EVIDENRA</div>
+    <div class="subtitle">Claude Bridge v1.0</div>
+  </div>
+
+  <div class="status-card">
+    <div class="status-item">
+      <span class="status-label">EVIDENRA App</span>
+      <div style="display: flex; align-items: center;">
+        <span class="status-value" id="app-status">Prüfe...</span>
+        <div class="status-indicator status-pending" id="app-indicator"></div>
+      </div>
+    </div>
+
+    <div class="status-item">
+      <span class="status-label">Claude Tab</span>
+      <div style="display: flex; align-items: center;">
+        <span class="status-value" id="claude-status">Prüfe...</span>
+        <div class="status-indicator status-pending" id="claude-indicator"></div>
+      </div>
+    </div>
+
+    <div class="status-item">
+      <span class="status-label">Letzte Aktivität</span>
+      <span class="status-value" id="last-activity">-</span>
+    </div>
+  </div>
+
+  <button class="button button-primary" id="open-claude" onclick="openClaude()">
+    Claude öffnen
+  </button>
+
+  <button class="button button-secondary" id="refresh-status" onclick="refreshStatus()">
+    <span id="refresh-text">Status aktualisieren</span>
+    <span id="refresh-loading" class="loading" style="display: none;"></span>
+  </button>
+
+  <button class="button button-secondary" onclick="openEvidenra()">
+    EVIDENRA öffnen
+  </button>
+
+  <div class="info-text">
+    Die Extension verbindet Ihre EVIDENRA App mit Claude Pro/Max.
+    Stellen Sie sicher, dass beide geöffnet sind.
+  </div>
+
+  <div class="shortcuts">
+    <div style="font-weight: bold; margin-bottom: 8px;">Tastenkürzel:</div>
+    <div class="shortcut-item">
+      <span>Antwort extrahieren</span>
+      <span>Ctrl+Shift+E</span>
+    </div>
+    <div class="shortcut-item">
+      <span>Verbindung reset</span>
+      <span>Ctrl+Shift+R</span>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>

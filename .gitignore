@@ -1,0 +1,16 @@
+node_modules/
+dist/
+release/
+.electron-cache/
+ci-builds/
+*.log
+*.exe
+*.dmg
+*.deb
+*.AppImage
+.DS_Store
+Thumbs.db
+nul
+*.backup
+*.tmp
+.backup-archive/
