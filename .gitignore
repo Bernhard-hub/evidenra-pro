@@ -4,10 +4,21 @@ release/
 .electron-cache/
 ci-builds/
 *.log
-*.exe
-*.dmg
-*.deb
-*.AppImage
+
+# Build artifacts (exclude from root, but allow in releases/)
+/*.exe
+/*.dmg
+/*.deb
+/*.AppImage
+releases/**/win-unpacked/
+releases/**/linux-unpacked/
+releases/**/mac/
+
+# Keep only the release binaries
+!releases/**/*.exe
+!releases/**/*.dmg
+!releases/**/*.AppImage
+
 .DS_Store
 Thumbs.db
 nul
