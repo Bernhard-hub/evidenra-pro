@@ -1,0 +1,141 @@
+name: Build and Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version (e.g., 1.0.0)'
+        required: true
+        default: '1.0.0'
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ github.event.inputs.version }}
+          release_name: EVIDENRA Pro v${{ github.event.inputs.version }}
+          draft: true
+          prerelease: false
+
+  build-windows:
+    needs: create-release
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Windows
+        run: npm run dist:win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Find and upload Windows exe
+        run: |
+          $exe = Get-ChildItem -Path releases -Filter "*.exe" -Recurse | Select-Object -First 1
+          echo "Found: $($exe.FullName)"
+          gh release upload v${{ github.event.inputs.version }} "$($exe.FullName)" --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-macos:
+    needs: create-release
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build macOS (Intel)
+        run: npm run build-prod && npx electron-builder --mac --x64
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: List and upload macOS Intel dmg
+        run: |
+          echo "All DMGs:"
+          find releases -name "*.dmg" -type f
+          DMG=$(find releases -name "*.dmg" -type f | head -1)
+          echo "Uploading: $DMG"
+          gh release upload v${{ github.event.inputs.version }} "$DMG#EVIDENRA-Pro-${{ github.event.inputs.version }}-macOS-Intel.dmg" --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build macOS (Apple Silicon)
+        run: npx electron-builder --mac --arm64
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: List and upload macOS ARM dmg
+        run: |
+          echo "All DMGs:"
+          find releases -name "*.dmg" -type f
+          # Find the newest DMG (arm64 was just built)
+          DMG=$(find releases -name "*.dmg" -type f -newer releases -exec ls -t {} + 2>/dev/null | head -1)
+          if [ -z "$DMG" ]; then
+            DMG=$(find releases -name "*arm64*.dmg" -type f | head -1)
+          fi
+          if [ -z "$DMG" ]; then
+            # Get second DMG if naming doesn't include arm64
+            DMG=$(find releases -name "*.dmg" -type f | tail -1)
+          fi
+          echo "Uploading: $DMG"
+          gh release upload v${{ github.event.inputs.version }} "$DMG#EVIDENRA-Pro-${{ github.event.inputs.version }}-macOS-AppleSilicon.dmg" --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-linux:
+    needs: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Linux
+        run: npm run dist:linux
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Find and upload Linux AppImage
+        run: |
+          APPIMAGE=$(find releases -name "*.AppImage" | head -1)
+          echo "Found: $APPIMAGE"
+          gh release upload v${{ github.event.inputs.version }} "$APPIMAGE#EVIDENRA-Pro-${{ github.event.inputs.version }}-Linux.AppImage" --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
