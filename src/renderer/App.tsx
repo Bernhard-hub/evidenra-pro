@@ -97,6 +97,7 @@ import { CitationValidatorPro } from './services/CitationValidatorPro';
 import { HallucinationDetector } from '../services/HallucinationDetector';
 import { RealMethodologyService } from '../services/RealMethodologyService';
 import { ContinuationService } from '../services/ContinuationService';
+import ServiceProxy, { THIN_CLIENT_MODE } from './services/ServiceProxy'; // 🚀 THIN CLIENT: Server-based analysis
 // 🧬 Genesis Engine - Self-evolving AI from BASIC Version
 import { Statistics } from '../services/Statistics'; // 🚀 REVOLUTION: Scientific AKIH Score
 import { GenesisIntegration } from '../../genesis-engine/src/GenesisIntegration.js';

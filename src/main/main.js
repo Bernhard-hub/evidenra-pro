@@ -121,7 +121,25 @@ function createWindow() {
 
 app.whenReady().then(async () => {
   app.on('open-url', (event, url) => { event.preventDefault(); handleAuthCallback(url); });
-  createWindow();
+
+  // Check license or trial validity before creating window
+  const isLicenseValid = await licenseValidator.isLicenseValid();
+
+  if (isLicenseValid) {
+    console.log('✅ Valid license found');
+    createWindow();
+  } else {
+    // Check trial status
+    const trialStatus = await licenseValidator.checkTrialStatus();
+
+    if (trialStatus.isValid && trialStatus.daysLeft > 0) {
+      console.log(`🔓 Trial active: ${trialStatus.daysLeft} days remaining`);
+      createWindow();
+    } else {
+      console.log('❌ No valid license or trial - showing license dialog');
+      await showLicenseDialog();
+    }
+  }
 });
 
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
@@ -152,5 +170,109 @@ ipcMain.handle('toggle-devtools', () => {
   return { isOpen: false };
 });
 ipcMain.handle('open-external', async (event, url) => { await shell.openExternal(url); return { success: true }; });
+
+// License Dialog Functions
+async function showLicenseDialog() {
+  const result = await dialog.showMessageBox(null, {
+    type: 'info',
+    title: 'EVIDENRA PRO - License Required',
+    message: 'Please enter your license key to continue.',
+    detail: 'You need a valid license key to use EVIDENRA PRO. You can start a 30-day free trial.',
+    buttons: ['Enter License Key', 'Start 30-Day Trial', 'Exit'],
+    defaultId: 0,
+    cancelId: 2
+  });
+
+  if (result.response === 0) {
+    await showLicenseInputDialog();
+  } else if (result.response === 1) {
+    // Start trial
+    const trialStatus = await licenseValidator.initializeTrial();
+    if (trialStatus.isValid) {
+      console.log(`🔓 Trial started: ${trialStatus.daysLeft} days`);
+      createWindow();
+    } else {
+      await dialog.showMessageBox(null, {
+        type: 'error',
+        title: 'Trial Error',
+        message: trialStatus.reason || 'Could not start trial'
+      });
+      app.quit();
+    }
+  } else {
+    app.quit();
+  }
+}
+
+async function showLicenseInputDialog() {
+  const licenseWindow = new BrowserWindow({
+    width: 500, height: 350,
+    webPreferences: {
+      nodeIntegration: false, contextIsolation: true,
+      preload: path.join(__dirname, '../preload/licensePreload.js')
+    },
+    title: 'Enter License Key',
+    autoHideMenuBar: true, modal: true, resizable: false
+  });
+
+  const licenseHtml = `<!DOCTYPE html>
+<html><head><title>License Key</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 30px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;
+    display: flex; flex-direction: column; justify-content: center; min-height: 100vh; }
+  .container { text-align: center; max-width: 400px; margin: 0 auto; padding: 20px;
+    background: rgba(255,255,255,0.1); backdrop-filter: blur(10px); border-radius: 15px; }
+  h1 { margin-bottom: 20px; font-size: 22px; }
+  input { width: 100%; padding: 12px; font-size: 14px; border: 2px solid rgba(255,255,255,0.3);
+    border-radius: 8px; margin-bottom: 20px; text-align: center; background: rgba(255,255,255,0.9); color: #333; }
+  button { padding: 12px 24px; font-size: 14px; border: none; border-radius: 8px; margin: 5px;
+    cursor: pointer; background: white; color: #333; font-weight: 600; }
+  button:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+  .error { color: #ffcccb; margin-top: 15px; min-height: 20px; }
+  #loading { color: #90EE90; margin-top: 10px; }
+</style></head>
+<body><div class="container">
+  <h1>🔑 Enter Your License Key</h1>
+  <input type="text" id="licenseKey" placeholder="Enter your license key..." />
+  <br><button onclick="validateLicense()">Validate License</button>
+  <button onclick="exitApp()">Exit</button>
+  <div id="error" class="error"></div>
+  <div id="loading" style="display: none;">Validating...</div>
+</div>
+<script>
+  async function validateLicense() {
+    const key = document.getElementById('licenseKey').value.trim();
+    if (!key) { document.getElementById('error').textContent = 'Please enter a license key'; return; }
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('error').textContent = '';
+    try {
+      const result = await window.electronAPI.validateLicense(key);
+      document.getElementById('loading').style.display = 'none';
+      if (result.valid) {
+        document.getElementById('error').style.color = '#90EE90';
+        document.getElementById('error').textContent = 'License valid! Starting...';
+        setTimeout(() => window.electronAPI.startApp(), 1500);
+      } else {
+        document.getElementById('error').textContent = result.error || 'Invalid license';
+      }
+    } catch (e) {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('error').textContent = 'Error: ' + e.message;
+    }
+  }
+  function exitApp() { window.electronAPI.exitApp(); }
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('licenseKey').focus();
+    document.getElementById('licenseKey').addEventListener('keypress', e => { if (e.key === 'Enter') validateLicense(); });
+  });
+</script></body></html>`;
+
+  const fs = require('fs');
+  const tempFile = path.join(__dirname, 'license.html');
+  fs.writeFileSync(tempFile, licenseHtml);
+  licenseWindow.loadFile(tempFile);
+}
 
 console.log('EVIDENRA Professional main process loaded');
