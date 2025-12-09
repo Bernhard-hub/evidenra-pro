@@ -122,24 +122,9 @@ function createWindow() {
 app.whenReady().then(async () => {
   app.on('open-url', (event, url) => { event.preventDefault(); handleAuthCallback(url); });
 
-  // Check license or trial validity before creating window
-  const isLicenseValid = await licenseValidator.isLicenseValid();
-
-  if (isLicenseValid) {
-    console.log('✅ Valid license found');
-    createWindow();
-  } else {
-    // Check trial status
-    const trialStatus = await licenseValidator.checkTrialStatus();
-
-    if (trialStatus.isValid && trialStatus.daysLeft > 0) {
-      console.log(`🔓 Trial active: ${trialStatus.daysLeft} days remaining`);
-      createWindow();
-    } else {
-      console.log('❌ No valid license or trial - showing license dialog');
-      await showLicenseDialog();
-    }
-  }
+  // V1.0: Always create window immediately - authentication via beautiful UI in React
+  // No more ugly system dialogs - the app handles login/trial internally with beautiful UI
+  createWindow();
 });
 
 app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
