@@ -98,7 +98,7 @@
     "appId": "com.evidenra.professional",
     "productName": "EVIDENRA Professional",
     "directories": {
-      "output": "releases/2025-12-05"
+      "output": "releases/2025-12-09"
     },
     "win": {
       "target": {
@@ -127,7 +127,7 @@
       "artifactName": "EVIDENRA-Pro-${version}-macOS-${arch}.dmg"
     },
     "dmg": {
-      "artifactName": "EVIDENRA-Pro-${version}-macOS.dmg"
+      "artifactName": "EVIDENRA-Pro-${version}-macOS-${arch}.dmg"
     },
     "linux": {
       "target": [
