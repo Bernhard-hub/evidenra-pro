@@ -1,4 +1,4 @@
-name: Build and Release
+name: Build Linux & macOS
 
 on:
   workflow_dispatch:
@@ -7,18 +7,77 @@ on:
         description: 'Release version (e.g., 1.0.0)'
         required: true
         default: '1.0.0'
+      build_linux:
+        description: 'Build Linux AppImage'
+        type: boolean
+        default: true
+      build_mac_intel:
+        description: 'Build macOS Intel (x64)'
+        type: boolean
+        default: true
+      build_mac_arm:
+        description: 'Build macOS Apple Silicon (arm64)'
+        type: boolean
+        default: true
 
 permissions:
   contents: write
+  actions: write
 
 jobs:
+  # Cleanup alte Artifacts um Speicherplatz zu sparen
+  cleanup-old-artifacts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete old artifacts
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const artifacts = await github.rest.actions.listArtifactsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+
+            for (const artifact of artifacts.data.artifacts) {
+              // Lösche alle Artifacts älter als 1 Tag
+              const created = new Date(artifact.created_at);
+              const now = new Date();
+              const daysDiff = (now - created) / (1000 * 60 * 60 * 24);
+
+              if (daysDiff > 1) {
+                console.log(`Deleting artifact: ${artifact.name} (${daysDiff.toFixed(1)} days old)`);
+                await github.rest.actions.deleteArtifact({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  artifact_id: artifact.id
+                });
+              }
+            }
+
   create-release:
     runs-on: ubuntu-latest
+    needs: cleanup-old-artifacts
     outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      release_id: ${{ steps.create_release.outputs.id }}
     steps:
+      - name: Check if release exists
+        id: check_release
+        continue-on-error: true
+        run: |
+          RELEASE=$(gh api repos/${{ github.repository }}/releases/tags/v${{ github.event.inputs.version }} 2>/dev/null || echo "not_found")
+          if [ "$RELEASE" != "not_found" ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "id=$(echo $RELEASE | jq -r '.id')" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Create Release
         id: create_release
+        if: steps.check_release.outputs.exists != 'true'
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -27,10 +86,19 @@ jobs:
           release_name: EVIDENRA Pro v${{ github.event.inputs.version }}
           draft: true
           prerelease: false
+          body: |
+            ## EVIDENRA Pro v${{ github.event.inputs.version }}
 
-  build-windows:
+            ### Downloads
+            - **Windows**: `EVIDENRA-Pro-${{ github.event.inputs.version }}-Windows.exe`
+            - **Linux**: `EVIDENRA-Pro-${{ github.event.inputs.version }}-Linux.AppImage`
+            - **macOS Intel**: `EVIDENRA-Pro-${{ github.event.inputs.version }}-macOS-x64.dmg`
+            - **macOS Apple Silicon**: `EVIDENRA-Pro-${{ github.event.inputs.version }}-macOS-arm64.dmg`
+
+  build-linux:
+    if: ${{ github.event.inputs.build_linux == 'true' }}
     needs: create-release
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -44,20 +112,21 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build Windows
-        run: npm run dist:win
+      - name: Build Linux AppImage
+        run: npm run dist:linux
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Find and upload Windows exe
+      - name: Upload to Release
         run: |
-          $exe = Get-ChildItem -Path releases -Filter "*.exe" -Recurse | Select-Object -First 1
-          echo "Found: $($exe.FullName)"
-          gh release upload v${{ github.event.inputs.version }} "$($exe.FullName)" --clobber
+          APPIMAGE=$(find releases -name "*.AppImage" | head -1)
+          echo "Found: $APPIMAGE"
+          gh release upload v${{ github.event.inputs.version }} "$APPIMAGE" --clobber
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  build-macos:
+  build-macos-intel:
+    if: ${{ github.event.inputs.build_mac_intel == 'true' }}
     needs: create-release
     runs-on: macos-latest
     steps:
@@ -73,47 +142,23 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build macOS (Intel)
+      - name: Build macOS Intel (x64)
         run: npm run build-prod && npx electron-builder --mac --x64
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: List and upload macOS Intel dmg
+      - name: Upload to Release
         run: |
-          echo "All DMGs:"
-          find releases -name "*.dmg" -type f
-          DMG=$(find releases -name "*.dmg" -type f | head -1)
-          echo "Uploading: $DMG"
-          gh release upload v${{ github.event.inputs.version }} "$DMG#EVIDENRA-Pro-${{ github.event.inputs.version }}-macOS-Intel.dmg" --clobber
+          DMG=$(find releases -name "*x64*.dmg" -o -name "*.dmg" | head -1)
+          echo "Found: $DMG"
+          gh release upload v${{ github.event.inputs.version }} "$DMG" --clobber
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build macOS (Apple Silicon)
-        run: npx electron-builder --mac --arm64
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: List and upload macOS ARM dmg
-        run: |
-          echo "All DMGs:"
-          find releases -name "*.dmg" -type f
-          # Find the newest DMG (arm64 was just built)
-          DMG=$(find releases -name "*.dmg" -type f -newer releases -exec ls -t {} + 2>/dev/null | head -1)
-          if [ -z "$DMG" ]; then
-            DMG=$(find releases -name "*arm64*.dmg" -type f | head -1)
-          fi
-          if [ -z "$DMG" ]; then
-            # Get second DMG if naming doesn't include arm64
-            DMG=$(find releases -name "*.dmg" -type f | tail -1)
-          fi
-          echo "Uploading: $DMG"
-          gh release upload v${{ github.event.inputs.version }} "$DMG#EVIDENRA-Pro-${{ github.event.inputs.version }}-macOS-AppleSilicon.dmg" --clobber
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  build-linux:
+  build-macos-arm:
+    if: ${{ github.event.inputs.build_mac_arm == 'true' }}
     needs: create-release
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -127,15 +172,42 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build Linux
-        run: npm run dist:linux
+      - name: Build macOS Apple Silicon (arm64)
+        run: npm run build-prod && npx electron-builder --mac --arm64
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Find and upload Linux AppImage
+      - name: Upload to Release
         run: |
-          APPIMAGE=$(find releases -name "*.AppImage" | head -1)
-          echo "Found: $APPIMAGE"
-          gh release upload v${{ github.event.inputs.version }} "$APPIMAGE#EVIDENRA-Pro-${{ github.event.inputs.version }}-Linux.AppImage" --clobber
+          DMG=$(find releases -name "*arm64*.dmg" -o -name "*.dmg" | head -1)
+          echo "Found: $DMG"
+          gh release upload v${{ github.event.inputs.version }} "$DMG" --clobber
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Cleanup nach dem Build
+  post-cleanup:
+    runs-on: ubuntu-latest
+    needs: [build-linux, build-macos-intel, build-macos-arm]
+    if: always()
+    steps:
+      - name: Delete workflow run artifacts
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const artifacts = await github.rest.actions.listArtifactsForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 50
+            });
+
+            for (const artifact of artifacts.data.artifacts) {
+              if (artifact.workflow_run?.id === context.runId) {
+                console.log(`Deleting artifact from this run: ${artifact.name}`);
+                await github.rest.actions.deleteArtifact({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  artifact_id: artifact.id
+                });
+              }
+            }
