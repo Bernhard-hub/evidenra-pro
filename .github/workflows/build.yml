@@ -119,8 +119,16 @@ jobs:
 
       - name: Upload to Release
         run: |
-          APPIMAGE=$(find releases -name "*.AppImage" | head -1)
+          # Finde die neueste AppImage Datei (nach Größe > 100MB)
+          APPIMAGE=$(find releases -name "*.AppImage" -size +100M 2>/dev/null | head -1)
+          if [ -z "$APPIMAGE" ]; then
+            APPIMAGE=$(find releases -name "*.AppImage" -type f -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)
+          fi
+          if [ -z "$APPIMAGE" ]; then
+            APPIMAGE=$(ls -t releases/*/*.AppImage 2>/dev/null | head -1)
+          fi
           echo "Found: $APPIMAGE"
+          ls -la "$APPIMAGE"
           gh release upload v${{ github.event.inputs.version }} "$APPIMAGE" --clobber
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
