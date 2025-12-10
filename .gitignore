@@ -25,3 +25,4 @@ nul
 *.backup
 *.tmp
 .backup-archive/
+releases/
