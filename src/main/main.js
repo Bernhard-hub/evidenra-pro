@@ -5,7 +5,7 @@ const LicenseValidator = require('./licenseValidator');
 let mainWindow;
 let licenseValidator;
 
-const PRODUCT_ID = 'BAHleQbgEXcGPy68OhfynQ==';
+const PRODUCT_ID = 'bYFAQ0k2QaD9eLkzf7ylPA=='; // PRO Product ID
 licenseValidator = new LicenseValidator(PRODUCT_ID);
 
 const PROTOCOL = 'evidenra';
