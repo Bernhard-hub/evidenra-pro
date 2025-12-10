@@ -127,6 +127,12 @@ export function GenesisSyncProvider({ children }: GenesisSyncProviderProps) {
           if (mounted) {
             setIsCloudEnabled(true);
           }
+        } else if (mounted) {
+          // No session - show login modal on first start
+          const skipped = sessionStorage.getItem('evidenra_login_skipped');
+          if (!skipped) {
+            setShowLoginModal(true);
+          }
         }
       } catch (error) {
         console.error('[GenesisSyncProvider] Init error:', error);
@@ -438,10 +444,31 @@ export function CloudLoginModal() {
               </button>
             </form>
 
-            <div className="mt-6 pt-4 border-t border-gray-800">
-              <p className="text-gray-500 text-sm text-center">
+            <div className="mt-4 pt-4 border-t border-gray-800">
+              <p className="text-gray-500 text-xs text-center mb-3">
                 Kein Passwort nötig - du erhältst einen sicheren Login-Link per E-Mail.
               </p>
+
+              {/* Skip Login Button */}
+              <button
+                onClick={() => {
+                  sessionStorage.setItem('evidenra_login_skipped', 'true');
+                  setShowLoginModal(false);
+                }}
+                className="w-full py-2 text-gray-400 hover:text-white text-sm transition-colors"
+              >
+                Ohne Login fortfahren (nur lokal)
+              </button>
+            </div>
+
+            {/* Benefits Info */}
+            <div className="mt-4 p-3 bg-gray-800/50 rounded-lg">
+              <p className="text-xs text-gray-400 mb-2 font-medium">Mit Login kannst du:</p>
+              <ul className="text-xs text-gray-500 space-y-1">
+                <li>• Projekte zwischen Web-App & Desktop synchronisieren</li>
+                <li>• Bei Upgrade (Basic → Pro → Ultimate) Daten mitnehmen</li>
+                <li>• Auf allen Geräten arbeiten</li>
+              </ul>
             </div>
           </>
         )}

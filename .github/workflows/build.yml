@@ -1,107 +1,44 @@
-name: Build Linux & macOS
+name: Build EVIDENRA Professional
 
 on:
   workflow_dispatch:
-    inputs:
-      version:
-        description: 'Release version (e.g., 1.0.0)'
-        required: true
-        default: '1.0.0'
-      build_linux:
-        description: 'Build Linux AppImage'
-        type: boolean
-        default: true
-      build_mac_intel:
-        description: 'Build macOS Intel (x64)'
-        type: boolean
-        default: true
-      build_mac_arm:
-        description: 'Build macOS Apple Silicon (arm64)'
-        type: boolean
-        default: true
-
-permissions:
-  contents: write
-  actions: write
+  push:
+    tags:
+      - 'v*'
 
 jobs:
-  # Cleanup alte Artifacts um Speicherplatz zu sparen
-  cleanup-old-artifacts:
-    runs-on: ubuntu-latest
+  build-windows:
+    runs-on: windows-latest
     steps:
-      - name: Delete old artifacts
-        uses: actions/github-script@v7
+      - uses: actions/checkout@v4
         with:
-          script: |
-            const artifacts = await github.rest.actions.listArtifactsForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              per_page: 100
-            });
+          lfs: true
 
-            for (const artifact of artifacts.data.artifacts) {
-              // Lösche alle Artifacts älter als 1 Tag
-              const created = new Date(artifact.created_at);
-              const now = new Date();
-              const daysDiff = (now - created) / (1000 * 60 * 60 * 24);
-
-              if (daysDiff > 1) {
-                console.log(`Deleting artifact: ${artifact.name} (${daysDiff.toFixed(1)} days old)`);
-                await github.rest.actions.deleteArtifact({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  artifact_id: artifact.id
-                });
-              }
-            }
-
-  create-release:
-    runs-on: ubuntu-latest
-    needs: cleanup-old-artifacts
-    outputs:
-      release_id: ${{ steps.create_release.outputs.id }}
-    steps:
-      - name: Check if release exists
-        id: check_release
-        continue-on-error: true
-        run: |
-          RELEASE=$(gh api repos/${{ github.repository }}/releases/tags/v${{ github.event.inputs.version }} 2>/dev/null || echo "not_found")
-          if [ "$RELEASE" != "not_found" ]; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-            echo "id=$(echo $RELEASE | jq -r '.id')" >> $GITHUB_OUTPUT
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create Release
-        id: create_release
-        if: steps.check_release.outputs.exists != 'true'
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          tag_name: v${{ github.event.inputs.version }}
-          release_name: EVIDENRA Pro v${{ github.event.inputs.version }}
-          draft: true
-          prerelease: false
-          body: |
-            ## EVIDENRA Pro v${{ github.event.inputs.version }}
+          node-version: '20'
+          cache: 'npm'
 
-            ### Downloads
-            - **Windows**: `EVIDENRA-Pro-${{ github.event.inputs.version }}-Windows.exe`
-            - **Linux**: `EVIDENRA-Pro-${{ github.event.inputs.version }}-Linux.AppImage`
-            - **macOS Intel**: `EVIDENRA-Pro-${{ github.event.inputs.version }}-macOS-x64.dmg`
-            - **macOS Apple Silicon**: `EVIDENRA-Pro-${{ github.event.inputs.version }}-macOS-arm64.dmg`
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Windows
+        run: npm run dist:win
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: releases/**/*.exe
+          retention-days: 3
 
   build-linux:
-    if: ${{ github.event.inputs.build_linux == 'true' }}
-    needs: create-release
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -112,34 +49,22 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build Linux AppImage
+      - name: Build Linux
         run: npm run dist:linux
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Upload to Release
-        run: |
-          # Finde die neueste AppImage Datei (nach Größe > 100MB)
-          APPIMAGE=$(find releases -name "*.AppImage" -size +100M 2>/dev/null | head -1)
-          if [ -z "$APPIMAGE" ]; then
-            APPIMAGE=$(find releases -name "*.AppImage" -type f -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)
-          fi
-          if [ -z "$APPIMAGE" ]; then
-            APPIMAGE=$(ls -t releases/*/*.AppImage 2>/dev/null | head -1)
-          fi
-          echo "Found: $APPIMAGE"
-          ls -la "$APPIMAGE"
-          gh release upload v${{ github.event.inputs.version }} "$APPIMAGE" --clobber
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-build
+          path: releases/**/*.AppImage
+          retention-days: 3
 
-  build-macos-intel:
-    if: ${{ github.event.inputs.build_mac_intel == 'true' }}
-    needs: create-release
+  build-mac:
     runs-on: macos-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -150,72 +75,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build macOS Intel (x64)
-        run: npm run build-prod && npx electron-builder --mac --x64
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build macOS
+        run: npm run dist:mac
 
-      - name: Upload to Release
-        run: |
-          DMG=$(find releases -name "*x64*.dmg" -o -name "*.dmg" | head -1)
-          echo "Found: $DMG"
-          gh release upload v${{ github.event.inputs.version }} "$DMG" --clobber
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  build-macos-arm:
-    if: ${{ github.event.inputs.build_mac_arm == 'true' }}
-    needs: create-release
-    runs-on: macos-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
         with:
-          node-version: '20'
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build macOS Apple Silicon (arm64)
-        run: npm run build-prod && npx electron-builder --mac --arm64
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload to Release
-        run: |
-          DMG=$(find releases -name "*arm64*.dmg" -o -name "*.dmg" | head -1)
-          echo "Found: $DMG"
-          gh release upload v${{ github.event.inputs.version }} "$DMG" --clobber
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  # Cleanup nach dem Build
-  post-cleanup:
-    runs-on: ubuntu-latest
-    needs: [build-linux, build-macos-intel, build-macos-arm]
-    if: always()
-    steps:
-      - name: Delete workflow run artifacts
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const artifacts = await github.rest.actions.listArtifactsForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              per_page: 50
-            });
-
-            for (const artifact of artifacts.data.artifacts) {
-              if (artifact.workflow_run?.id === context.runId) {
-                console.log(`Deleting artifact from this run: ${artifact.name}`);
-                await github.rest.actions.deleteArtifact({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  artifact_id: artifact.id
-                });
-              }
-            }
+          name: macos-build
+          path: releases/**/*.dmg
+          retention-days: 3

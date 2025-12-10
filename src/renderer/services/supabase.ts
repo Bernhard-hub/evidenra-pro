@@ -1,18 +1,21 @@
 import { createClient, SupabaseClient, User, Session } from '@supabase/supabase-js'
 
-// Supabase Configuration
-// WICHTIG: Diese Werte müssen in .env.local konfiguriert werden
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://your-project.supabase.co'
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'your-anon-key'
+// Supabase Configuration - EVIDENRA Pro
+const supabaseUrl = 'https://qkcukdgrqncahpvrrxtm.supabase.co'
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrY3VrZGdycW5jYWhwdnJyeHRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3ODEyNjcsImV4cCI6MjA4MDM1NzI2N30._CNpywk-hZ8Tpgm9Elk22gopw-84ZOhGh97PW5R2ieY'
 
-// Create Supabase client
+// Create Supabase client with Electron-compatible settings
 export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true,
+    detectSessionInUrl: false, // Disabled for Electron - no URL-based auth
     flowType: 'pkce',
     storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    lock: {
+      // Disable lock manager in Electron (causes warnings)
+      acquireLock: false,
+    } as unknown as undefined, // Type workaround for Electron compatibility
   },
 })
 
@@ -78,10 +81,10 @@ export interface Coding {
 export const authService = {
   // Send Magic Link
   async sendMagicLink(email: string): Promise<{ error: Error | null }> {
-    // Custom domain: basic.evidenra.com
+    // Redirect URL for Basic app
     const redirectUrl = `${window.location.origin}/auth/callback`
 
-    console.log('Magic link redirect URL:', redirectUrl)
+    console.log('[EVIDENRA Pro] Magic link redirect URL:', redirectUrl)
 
     const { error } = await supabase.auth.signInWithOtp({
       email,
@@ -162,12 +165,20 @@ export const profileService = {
   }> {
     const { data: profile } = await supabase
       .from('users')
-      .select('subscription, trial_start')
+      .select('subscription, trial_start, email')
       .eq('id', userId)
       .single()
 
     if (!profile) {
       return { status: 'expired', daysRemaining: 0, canUse: false }
+    }
+
+    
+    // Admin-Bypass: Admins haben immer vollen Zugriff
+    const ADMIN_EMAILS = ['bernhard.strobl@kph-es.at', 'b.strobl@hotmail.com']
+    if (profile.email && ADMIN_EMAILS.includes(profile.email.toLowerCase())) {
+      console.log('[EVIDENRA] Admin-Bypass aktiviert fuer:', profile.email)
+      return { status: 'premium', daysRemaining: -1, canUse: true }
     }
 
     if (profile.subscription === 'premium') {
