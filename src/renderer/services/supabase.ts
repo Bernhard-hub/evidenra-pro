@@ -1,8 +1,8 @@
 import { createClient, SupabaseClient, User, Session } from '@supabase/supabase-js'
 
-// Supabase Configuration - EVIDENRA Pro
-const supabaseUrl = 'https://qkcukdgrqncahpvrrxtm.supabase.co'
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFrY3VrZGdycW5jYWhwdnJyeHRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3ODEyNjcsImV4cCI6MjA4MDM1NzI2N30._CNpywk-hZ8Tpgm9Elk22gopw-84ZOhGh97PW5R2ieY'
+// Supabase Configuration - EVIDENRA Pro (shared with PWA)
+const supabaseUrl = 'https://zvkoulhziksfxnxkkrmb.supabase.co'
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp2a291bGh6aWtzZnhueGtrcm1iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0MTE3NjQsImV4cCI6MjA3OTk4Nzc2NH0.GJ82Zp37DXICVDvhmjSGo6THSmYcSuykRVgN3z4WWW0'
 
 // Create Supabase client with Electron-compatible settings
 export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
@@ -165,7 +165,7 @@ export const profileService = {
   }> {
     const { data: profile } = await supabase
       .from('users')
-      .select('subscription, trial_start, email')
+      .select('subscription, trial_start, email, is_admin')
       .eq('id', userId)
       .single()
 
@@ -173,11 +173,9 @@ export const profileService = {
       return { status: 'expired', daysRemaining: 0, canUse: false }
     }
 
-    
-    // Admin-Bypass: Admins haben immer vollen Zugriff
-    const ADMIN_EMAILS = ['bernhard.strobl@kph-es.at', 'b.strobl@hotmail.com']
-    if (profile.email && ADMIN_EMAILS.includes(profile.email.toLowerCase())) {
-      console.log('[EVIDENRA] Admin-Bypass aktiviert fuer:', profile.email)
+    // Admin-Check: Server-Side ueber is_admin Feld in Datenbank
+    if (profile.is_admin === true) {
+      console.log('[EVIDENRA] Admin-Zugriff aktiviert')
       return { status: 'premium', daysRemaining: -1, canUse: true }
     }
 
