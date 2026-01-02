@@ -1,6 +1,7 @@
 const { app, BrowserWindow, dialog, ipcMain, shell, session } = require('electron');
 const path = require('path');
 const LicenseValidator = require('./licenseValidator');
+const { processPDF } = require('./pdfProcessingService');
 
 let mainWindow;
 let licenseValidator;
@@ -155,6 +156,18 @@ ipcMain.handle('toggle-devtools', () => {
   return { isOpen: false };
 });
 ipcMain.handle('open-external', async (event, url) => { await shell.openExternal(url); return { success: true }; });
+
+// PDF Processing via Main Process (pdf-parse)
+ipcMain.handle('process-pdf', async (event, arrayBuffer) => {
+  try {
+    const buffer = Buffer.from(arrayBuffer);
+    const result = await processPDF(buffer);
+    return result;
+  } catch (error) {
+    console.error('PDF processing IPC error:', error);
+    throw error;
+  }
+});
 
 // License Dialog Functions
 async function showLicenseDialog() {
