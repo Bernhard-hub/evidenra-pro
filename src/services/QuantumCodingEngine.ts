@@ -3,6 +3,11 @@
 // ================================================================================
 
 import APIService, { type APIMessage } from './APIService';
+import { ProtectedPromptsService, ExpertPersonas, ExpertPersona } from './ProtectedPromptsService';
+
+// Cached server personas - loaded once
+let cachedServerPersonas: ExpertPersonas | null = null;
+let personasFetchAttempted = false;
 
 export interface QuantumCoding {
   id: string;
@@ -92,6 +97,73 @@ class QuantumCircuitBreaker {
       lastFailure: this.lastFailureTime
     };
   }
+}
+
+// LOCAL FALLBACK PERSONAS (used when server is unavailable)
+// ================================================================================
+const FALLBACK_PERSONAS = {
+  methodologist: {
+    name: 'Methodologist',
+    title: 'Research Methodologist',
+    expertise: 'Research Methodology',
+    background: 'Specialist in research methodology and statistical analysis.',
+    theoreticalLens: 'Methodological rigor',
+    focus: 'methodological aspects',
+    validationCriteria: ['validity', 'reliability'],
+    potentialBias: 'quantitative aspects',
+    blindSpots: 'interpretive insights'
+  },
+  domainExpert: {
+    name: 'Domain Expert',
+    title: 'Domain Specialist',
+    expertise: 'Domain Knowledge',
+    background: 'Expert in the specific research domain.',
+    theoreticalLens: 'Theoretical frameworks',
+    focus: 'domain relevance',
+    validationCriteria: ['relevance', 'contribution'],
+    potentialBias: 'established theories',
+    blindSpots: 'emerging paradigms'
+  },
+  peerReviewer: {
+    name: 'Peer Reviewer',
+    title: 'Research Reviewer',
+    expertise: 'Research Evaluation',
+    background: 'Experienced in evaluating research quality.',
+    theoreticalLens: 'Critical evaluation',
+    focus: 'publication standards',
+    validationCriteria: ['clarity', 'significance'],
+    potentialBias: 'conventional approaches',
+    blindSpots: 'innovative methods'
+  }
+};
+
+/**
+ * Gets expert personas from server with local fallback
+ */
+async function getExpertPersonas(): Promise<ExpertPersonas> {
+  // Return cached if available
+  if (cachedServerPersonas) {
+    return cachedServerPersonas;
+  }
+
+  // Only try server once per session
+  if (!personasFetchAttempted) {
+    personasFetchAttempted = true;
+    try {
+      const serverPersonas = await ProtectedPromptsService.getExpertPersonas();
+      if (serverPersonas) {
+        console.log('[QuantumCoding] Using server-protected personas');
+        cachedServerPersonas = serverPersonas;
+        return serverPersonas;
+      }
+    } catch (error) {
+      console.warn('[QuantumCoding] Failed to fetch server personas, using fallback:', error);
+    }
+  }
+
+  // Fallback to local personas
+  console.log('[QuantumCoding] Using local fallback personas');
+  return FALLBACK_PERSONAS as ExpertPersonas;
 }
 
 // REVOLUTIONARY QUANTUM CODING ENGINE
@@ -328,26 +400,32 @@ class QuantumCodingEngine {
     };
   }
 
-  // QUANTUM EXPERT IMPLEMENTATIONS
+  // QUANTUM EXPERT IMPLEMENTATIONS (Using server-protected personas with fallback)
   // ================================================================================
   private async getMethodologistCoding(segment: any, context: CodingContext, apiSettings: any): Promise<number> {
+    const personas = await getExpertPersonas();
+    const expert = personas.methodologist;
+
     const prompt: APIMessage[] = [
       {
         role: 'system',
-        content: `You are Dr. Sarah Chen, a methodological expert specializing in research design and statistical analysis. Analyze text segments for their methodological significance and assign them to the most appropriate category based on research methodology principles.
+        content: `You are ${expert.name}, ${expert.title}. ${expert.background}
 
-Your expertise: Research methodology, statistical validity, construct validity, reliability theory.
+Your expertise: ${expert.expertise}
+Focus: ${expert.focus}
+Theoretical Lens: ${expert.theoreticalLens}
+Validation Criteria: ${expert.validationCriteria.join(', ')}
 
 Categories available:
 ${context.categories.map((cat: any, i: number) => `${i}: ${cat.name} - ${cat.description || cat.source}`).join('\n')}`
       },
       {
         role: 'user',
-        content: `Analyze this text segment and assign it to the most methodologically appropriate category (return ONLY the category number 0-${context.categories.length - 1}):
+        content: `Analyze this text segment and assign it to the most appropriate category (return ONLY the category number 0-${context.categories.length - 1}):
 
 "${segment.text}"
 
-Consider: methodological rigor, research design implications, statistical relevance, construct validity.`
+Consider: ${expert.focus}. Be aware of your potential bias toward ${expert.potentialBias}.`
       }
     ];
 
@@ -371,23 +449,29 @@ Consider: methodological rigor, research design implications, statistical releva
   }
 
   private async getDomainExpertCoding(segment: any, context: CodingContext, apiSettings: any): Promise<number> {
+    const personas = await getExpertPersonas();
+    const expert = personas.domainExpert;
+
     const prompt: APIMessage[] = [
       {
         role: 'system',
-        content: `You are Prof. Michael Rodriguez, a domain expert with deep knowledge in the subject area. Analyze text segments for their theoretical and practical significance within the domain.
+        content: `You are ${expert.name}, ${expert.title}. ${expert.background}
 
-Your expertise: Domain-specific theory, practical applications, field knowledge, theoretical frameworks.
+Your expertise: ${expert.expertise}
+Focus: ${expert.focus}
+Theoretical Lens: ${expert.theoreticalLens}
+Validation Criteria: ${expert.validationCriteria.join(', ')}
 
 Categories available:
 ${context.categories.map((cat: any, i: number) => `${i}: ${cat.name} - ${cat.description || cat.source}`).join('\n')}`
       },
       {
         role: 'user',
-        content: `Analyze this text segment and assign it to the most theoretically appropriate category (return ONLY the category number 0-${context.categories.length - 1}):
+        content: `Analyze this text segment and assign it to the most appropriate category (return ONLY the category number 0-${context.categories.length - 1}):
 
 "${segment.text}"
 
-Consider: theoretical relevance, domain significance, practical implications, field contribution.`
+Consider: ${expert.focus}. Be aware of your potential bias toward ${expert.potentialBias}.`
       }
     ];
 
@@ -411,23 +495,29 @@ Consider: theoretical relevance, domain significance, practical implications, fi
   }
 
   private async getPeerReviewerCoding(segment: any, context: CodingContext, apiSettings: any): Promise<number> {
+    const personas = await getExpertPersonas();
+    const expert = personas.peerReviewer;
+
     const prompt: APIMessage[] = [
       {
         role: 'system',
-        content: `You are Dr. Emma Thompson, an experienced peer reviewer with expertise in evaluating research quality for top-tier journals. Analyze text segments for their publication relevance and scientific merit.
+        content: `You are ${expert.name}, ${expert.title}. ${expert.background}
 
-Your expertise: Publication standards, peer review criteria, scientific merit, journal quality standards.
+Your expertise: ${expert.expertise}
+Focus: ${expert.focus}
+Theoretical Lens: ${expert.theoreticalLens}
+Validation Criteria: ${expert.validationCriteria.join(', ')}
 
 Categories available:
 ${context.categories.map((cat: any, i: number) => `${i}: ${cat.name} - ${cat.description || cat.source}`).join('\n')}`
       },
       {
         role: 'user',
-        content: `Analyze this text segment and assign it to the most publication-relevant category (return ONLY the category number 0-${context.categories.length - 1}):
+        content: `Analyze this text segment and assign it to the most appropriate category (return ONLY the category number 0-${context.categories.length - 1}):
 
 "${segment.text}"
 
-Consider: publication merit, scientific significance, clarity, originality, journal standards.`
+Consider: ${expert.focus}. Be aware of your potential bias toward ${expert.potentialBias}.`
       }
     ];
 
