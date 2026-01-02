@@ -77,7 +77,7 @@ function createWindow() {
       nodeIntegration: false, contextIsolation: true, webSecurity: false,
       preload: path.join(__dirname, '../preload/preload.js')
     },
-    title: 'EVIDENRA Professional - v3.0 Quantum Enhanced',
+    title: 'EVIDENRA Professional - v1.2.0',
     autoHideMenuBar: true, show: false
   });
 
