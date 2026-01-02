@@ -9465,7 +9465,7 @@ Erstelle jetzt das Kapitel "${chapter.name}" mit ${chapter.targetWords} Wörtern
       const result = await ScientificArticleService.generateEnhancedDataReport(
         project,
         apiSettings,
-        'de'
+        language
       );
 
       if (result.success) {
@@ -10935,7 +10935,7 @@ Entwickle daraus einen wissenschaftlich fundierten Meta-Prompt für publikations
         const ultimateResult = await UltimateReportService.generateUltimateReport(
           project,
           apiSettings,
-          'de'
+          language
         );
 
         if (!ultimateResult.success) {
@@ -11220,7 +11220,7 @@ Schreibe einen vollständigen, publishingfähigen wissenschaftlichen Artikel in 
       const result = await EvidenraBasisReportService.generateEvidenraMethodologyReport(
         evidenraProcessData,
         apiSettings,
-        'de',
+        language,
         (status) => {
           setEvidenraMethodologyProcessing(prev => ({
             ...prev,
