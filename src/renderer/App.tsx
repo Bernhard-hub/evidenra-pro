@@ -11685,7 +11685,7 @@ Schreibe einen vollständigen, publishingfähigen wissenschaftlichen Artikel in 
               <h1 className="text-display gradient-text-primary mb-1">
                 EVIDENRA Professional
               </h1>
-              <p className="text-xs text-white text-opacity-60 font-medium">Professional ${APP_VERSION_DISPLAY}</p>
+              <p className="text-xs text-white text-opacity-60 font-medium">{PRODUCT_NAME} {APP_VERSION_DISPLAY}</p>
               <div className="mt-2 flex items-center gap-2">
                 {(() => {
                   const hasApiKey = apiSettings.apiKey && apiSettings.apiKey.length > 0;

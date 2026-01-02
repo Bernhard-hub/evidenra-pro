@@ -1,6 +1,6 @@
 {
   "name": "evidenra-professional",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "EVIDENRA Professional - AKI Method Research Tool",
   "main": "src/main/main.js",
   "scripts": {
