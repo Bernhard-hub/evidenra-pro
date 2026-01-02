@@ -54,15 +54,15 @@ jobs:
         if: matrix.platform == 'linux'
         run: npm run dist:linux
 
-      - name: Upload artifacts
+      - name: Find and upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.platform }}-build
           path: |
-            release/*.exe
-            release/*.dmg
-            release/*.AppImage
-            release/*.deb
+            releases/**/*.exe
+            releases/**/*.dmg
+            releases/**/*.AppImage
+            releases/**/*.deb
           retention-days: 5
 
   release:
