@@ -1,12 +1,16 @@
 /**
  * EVIDENRA App Configuration
  * Central configuration for version and app settings
+ * Version is automatically read from package.json
  */
 
+// Import version from package.json (webpack resolves this)
+const packageVersion = require('../../../../package.json').version;
+
 export const APP_CONFIG = {
-  // Version - UPDATE THIS FOR NEW RELEASES
-  VERSION: '1.2.0',
-  VERSION_DISPLAY: 'v1.2.0',
+  // Version - automatically synced from package.json
+  VERSION: packageVersion,
+  VERSION_DISPLAY: `v${packageVersion}`,
 
   // Product Info
   PRODUCT_NAME: 'EVIDENRA Professional',
