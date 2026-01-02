@@ -5,7 +5,7 @@
  */
 
 // Import version from package.json (webpack resolves this)
-const packageVersion = require('../../../../package.json').version;
+const packageVersion = require('../../../package.json').version;
 
 export const APP_CONFIG = {
   // Version - automatically synced from package.json
