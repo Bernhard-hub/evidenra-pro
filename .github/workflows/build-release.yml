@@ -2,11 +2,6 @@ name: Build Mac & Linux
 
 on:
   workflow_dispatch:
-    inputs:
-      release_date:
-        description: 'Release date folder (e.g., 2025-12-05)'
-        required: true
-        default: '2025-12-05'
 
 jobs:
   build-mac:
@@ -14,8 +9,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          lfs: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -36,7 +29,7 @@ jobs:
         with:
           name: macos-builds
           path: |
-            releases/${{ github.event.inputs.release_date }}/*.dmg
+            releases/**/*.dmg
           retention-days: 30
 
   build-linux:
@@ -44,8 +37,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          lfs: true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -66,45 +57,5 @@ jobs:
         with:
           name: linux-builds
           path: |
-            releases/${{ github.event.inputs.release_date }}/*.AppImage
+            releases/**/*.AppImage
           retention-days: 30
-
-  commit-releases:
-    needs: [build-mac, build-linux]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          lfs: true
-
-      - name: Download macOS artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: macos-builds
-          path: releases/${{ github.event.inputs.release_date }}
-
-      - name: Download Linux artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: linux-builds
-          path: releases/${{ github.event.inputs.release_date }}
-
-      - name: Setup Git LFS
-        run: git lfs install
-
-      - name: Track large files with LFS
-        run: |
-          git lfs track "releases/**/*.dmg"
-          git lfs track "releases/**/*.AppImage"
-
-      - name: Commit and push releases
-        run: |
-          git config user.name "GitHub Actions"
-          git config user.email "actions@github.com"
-          git add .gitattributes
-          git add releases/
-          git commit -m "Add Mac & Linux builds for ${{ github.event.inputs.release_date }}" || echo "No changes to commit"
-          git push
